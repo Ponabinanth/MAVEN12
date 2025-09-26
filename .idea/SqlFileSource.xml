@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlFileSource">
+    <option name="sources">
+      <map>
+        <entry key="$PROJECT_DIR$/src/main/java/org/example/test.sql" value="843b1b3c-f374-4544-a56d-cb378871335f" />
+      </map>
+    </option>
+  </component>
+</project>
