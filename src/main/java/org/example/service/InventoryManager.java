@@ -1,73 +1,86 @@
-// File: src/main/java/org/example/service/InventoryManager.java
 package org.example.service;
 
-import org.example.DAO.ProductDAO;
 import org.example.model.Product;
-import java.util.List;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 public class InventoryManager {
-    private final ProductDAO productDAO;
+    private final Map<String, Product> productMap = new HashMap<>();
 
-    public InventoryManager() {
-        // Instantiate the specific DAO implementation
-        this.productDAO = new productDAOImpl();
-    }
-
-    public void addProduct(Product product) {
-        Optional<Product> existingProduct = productDAO.getProductById(product.getProductId());
-        if (existingProduct.isPresent()) {
-            System.err.println("❌ Error: A product with ID '" + product.getProductId() + "' already exists. Use the update option instead.");
-        } else {
-            if (productDAO.addProduct(product)) {
-                System.out.println("✅ Product added successfully: " + product.getProductName());
+    public boolean addProduct(Product product) {
+        if (product != null) {
+            if (productMap.containsKey(product.getProductId())) {
+                System.err.println("❌ Error: A product with ID '" + product.getProductId() + "' already exists. Use the update option instead.");
+                return false;
+            } else {
+                productMap.put(product.getProductId(), product);
+                return true;
             }
         }
+        return false;
     }
-
-    public void viewAllProducts() {
-        List<Product> products = productDAO.getAllProducts();
-        if (products.isEmpty()) {
-            System.out.println("Inventory is empty.");
-            return;
-        }
-        System.out.println("\n--- All Products in Inventory ---");
-        for (Product p : products) {
-            System.out.println("ID: " + p.getProductId() + " | Name: " + p.getProductName() +
-                    " | Price: $" + p.getPrice() + " | Qty: " + p.getQuantity());
-        }
+    public Collection<Product> getAllProducts() {
+        return productMap.values();
     }
+    public List<Product> getSortedProducts(Comparator<Product> comparator) {
+        List<Product> products = new ArrayList<>(productMap.values());
 
+        products.sort(comparator);
+        return products;
+    }
     public Optional<Product> searchProduct(String id) {
-        return productDAO.getProductById(id);
+        Product product = productMap.get(id);
+        return Optional.ofNullable(product);
     }
-
     public boolean updateProduct(String id, double newPrice, int newQuantity) {
-        return productDAO.updateProduct(id, newPrice, newQuantity);
+        Product productToUpdate = productMap.get(id);
+        if (productToUpdate != null) {
+            productToUpdate.setPrice(newPrice);
+            productToUpdate.setQuantity(newQuantity);
+            return true;
+        }
+        return false;
     }
-
     public boolean removeProduct(String id) {
-        return productDAO.deleteProduct(id);
+        return productMap.remove(id) != null;
     }
+    public void saveToCsv() {
+        String csvFilePath = "inventory_output.csv";
+        try (FileWriter writer = new FileWriter(csvFilePath)) {
+            // Write the CSV header
+            writer.append("ID,Name,Price,Quantity,ManufacturingDate,Supplier\n");
+            for (Product product : productMap.values()) {
+                writer.append(product.getProductId()).append(",");
+                writer.append(product.getProductName()).append(",");
+                writer.append(String.valueOf(product.getPrice())).append(",");
+                writer.append(String.valueOf(product.getQuantity())).append(",");
+                writer.append(product.getManufacturingDate().toString()).append(",");
+                writer.append(product.getSupplier()).append("\n");
+            }
 
-    // The report methods now rely on the DAO to fetch all data
+            System.out.println("✅ Inventory successfully saved to " + csvFilePath);
+        } catch (IOException e) {
+            System.err.println("❌ Error saving inventory to CSV: " + e.getMessage());
+        }
+    }
     public int getTotalProducts() {
-        return productDAO.getAllProducts().size();
+        return productMap.size();
     }
-
     public int getTotalQuantity() {
-        int totalQuantity = 0;
-        for (Product product : productDAO.getAllProducts()) {
-            totalQuantity += product.getQuantity();
-        }
-        return totalQuantity;
+        return productMap.values().stream()
+                .mapToInt(Product::getQuantity)
+                .sum();
     }
-
     public double getTotalValue() {
-        double totalValue = 0.0;
-        for (Product product : productDAO.getAllProducts()) {
-            totalValue += product.getPrice() * product.getQuantity();
-        }
-        return totalValue;
+        return productMap.values().stream()
+                .mapToDouble(p -> p.getPrice() * p.getQuantity())
+                .sum();
     }
 }

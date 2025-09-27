@@ -1,10 +1,7 @@
-// File: src/main/java/org/example/model/Product.java
 package org.example.model;
-
 import java.time.LocalDate;
-
 public class Product {
-    private String productId;
+    private final String productId;
     private String productName;
     private double price;
     private int quantity;
@@ -20,17 +17,20 @@ public class Product {
         this.supplier = supplier;
     }
 
-    // Getters and Setters
+    // Getters
     public String getProductId() { return productId; }
-    public void setProductId(String productId) { this.productId = productId; }
     public String getProductName() { return productName; }
-    public void setProductName(String productName) { this.productName = productName; }
     public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
     public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
     public LocalDate getManufacturingDate() { return manufacturingDate; }
-    public void setManufacturingDate(LocalDate manufacturingDate) { this.manufacturingDate = manufacturingDate; }
     public String getSupplier() { return supplier; }
+
+    // Setters (used by the updateProduct method)
+    public void setPrice(double price) { this.price = price; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    // Additional setters (optional, but good practice)
+    public void setProductName(String productName) { this.productName = productName; }
+    public void setManufacturingDate(LocalDate manufacturingDate) { this.manufacturingDate = manufacturingDate; }
     public void setSupplier(String supplier) { this.supplier = supplier; }
 }
